@@ -150,24 +150,18 @@ public class Main extends Configured implements Tool {
         }
     }
 
-    public static class Reduce extends Reducer<Text, IntWritable, Text, DoubleWritable> {
-        private DoubleWritable result = new DoubleWritable();
-        Float average;
-        Float count;
+    public static class Reduce extends Reducer<Text, IntWritable, Text, IntWritable> {
+        private IntWritable result = new IntWritable();
         int sum;
 
         @Override
         public void reduce(Text key, Iterable<IntWritable> values, Context context) throws IOException, InterruptedException {
-            average = 0f;
-            count = 0f;
             sum = 0;
-            Text sumText = new Text("average size of station for " + key + " year is: ");
+            Text sumText = new Text("For case: " + key + ", was number of accidents: ");
             for (IntWritable val : values) {
                 sum += val.get();
-                count += 1;
             }
-            average = sum / count;
-            result.set(average);
+            result.set(sum);
             context.write(sumText, result);
         }
     }
