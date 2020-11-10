@@ -1,0 +1,8 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="main8">
+    <output-path>$PROJECT_DIR$/out/artifacts/main8</output-path>
+    <root id="archive" name="main8.jar">
+      <element id="module-output" name="BigDataJava8" />
+    </root>
+  </artifact>
+</component>
