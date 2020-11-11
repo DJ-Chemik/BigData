@@ -43,13 +43,12 @@ public class Main extends Configured implements Tool {
 
     public static class Map extends Mapper<LongWritable, Text, Text, IntWritable> {
 
-        private MapKey mapKey;
+        private SimpleMapKey mapKey = new SimpleMapKey();
         private IntWritable size = new IntWritable();
 
         private ArrayList<String> streets = new ArrayList<>();
         private ArrayList<String> typesParticipants = new ArrayList<>(Arrays.asList("PEDESTRIAN", "CYCLIST", "MOTORIST"));
         private ArrayList<String> characters = new ArrayList<>(Arrays.asList("INJURED", "KILLED"));
-        private int zipcode;
         private int injuredPedestrians = 0;
         private int killedPedestrians = 0;
         private int injuredCyclist = 0;
@@ -65,88 +64,96 @@ public class Main extends Configured implements Tool {
                 return;
             }
 
-            String line = value.toString();
-            int i = 0;
-            for (String word : line.split(",(?=([^\"]*\"[^\"]*\")*[^\"]*$)")) {
-                if (i == 0) {
-                    String year = word.substring(word.lastIndexOf('/') + 1, word.lastIndexOf('/') + 5);
-                    if (Integer.parseInt(year) <= 2012) {
-                        return;
-                    }
+//            String[] line = value.toString().split(",(?=([^\"]*\"[^\"]*\")*[^\"]*$)");
+            String[] line = value.toString().split(",");
+
+            if (line[0].length() > 0) {
+                String year = line[0].substring(line[0].lastIndexOf('/') + 1, line[0].lastIndexOf('/') + 5);
+                if (Integer.parseInt(year) <= 2012) {
+                    return;
                 }
-                if (i == 2) {
-                    if (word.length() > 0) {
-                        zipcode = Integer.parseInt(word);
-                    }
-                }
-                //--------------------------------------------------- STREET
-                if (i == 6) {
-                    if (word.length() > 0) {
-                        streets.add(word);
-                    }
-                }
-                if (i == 7) {
-                    if (word.length() > 0) {
-                        streets.add(word);
-                    }
-                }
-                if (i == 8) {
-                    if (word.length() > 0) {
-                        streets.add(word);
-                    }
-                }
-                //--------------------------------------------------- STREET
-                if (i == 11) { // injured pedestrians
-                    injuredPedestrians++;
-                }
-                if (i == 12) { // killed pedestrians
-                    killedPedestrians++;
-                }
-                if (i == 13) { // injured cyclist
-                    injuredCyclist++;
-                }
-                if (i == 14) { // killed cyclist
-                    killedCyclist++;
-                }
-                if (i == 15) { // injured motorist
-                    injuredMotorist++;
-                }
-                if (i == 16) { // killed motorist
-                    killedMotorist++;
-                }
-                i++;
             }
+            if (line.length < 17) {
+                return;
+            }
+            if (line[2].length() > 0) {
+                System.out.println("--------------------------------------------------------" + line[2]);
+                mapKey.setZipcode(Integer.parseInt(line[2]));
+            }
+            injuredPedestrians = Integer.parseInt(line[11]);
+            killedPedestrians = Integer.parseInt(line[12]);
+            injuredCyclist = Integer.parseInt(line[13]);
+            killedCyclist = Integer.parseInt(line[14]);
+            injuredMotorist = Integer.parseInt(line[15]);
+            killedMotorist = Integer.parseInt(line[16]);
+            //--------------------------------------------------- STREET
+            if (line[6].length() > 0) {
+                mapKey.setStreet(line[6]);
 
-            for (String street : streets) {
-                mapKey = new MapKey();
-                mapKey.setStreet(new Text(street));
-                mapKey.setZipcode(new IntWritable(zipcode));
-
-                mapKey.setCharackerOfAccident(new Text("INJURED"));
-                mapKey.setTypeParticipant(new Text("PEDESTRIAN"));
+                mapKey.setCharackerOfAccident("INJURED");
+                mapKey.setTypeParticipant("PEDESTRIAN");
                 context.write(new Text(mapKey.toString()), new IntWritable(injuredPedestrians));
-
-                mapKey.setCharackerOfAccident(new Text("KILLED"));
-                mapKey.setTypeParticipant(new Text("PEDESTRIAN"));
+                mapKey.setCharackerOfAccident("KILLED");
+                mapKey.setTypeParticipant("PEDESTRIAN");
                 context.write(new Text(mapKey.toString()), new IntWritable(killedPedestrians));
-
-                mapKey.setCharackerOfAccident(new Text("INJURED"));
-                mapKey.setTypeParticipant(new Text("CYCLIST"));
+                mapKey.setCharackerOfAccident("INJURED");
+                mapKey.setTypeParticipant("CYCLIST");
                 context.write(new Text(mapKey.toString()), new IntWritable(injuredCyclist));
-
-                mapKey.setCharackerOfAccident(new Text("KILLED"));
-                mapKey.setTypeParticipant(new Text("CYCLIST"));
+                mapKey.setCharackerOfAccident("KILLED");
+                mapKey.setTypeParticipant("CYCLIST");
                 context.write(new Text(mapKey.toString()), new IntWritable(killedCyclist));
-
-                mapKey.setCharackerOfAccident(new Text("INJURED"));
-                mapKey.setTypeParticipant(new Text("MOTORIST"));
+                mapKey.setCharackerOfAccident("INJURED");
+                mapKey.setTypeParticipant("MOTORIST");
                 context.write(new Text(mapKey.toString()), new IntWritable(injuredMotorist));
-
-                mapKey.setCharackerOfAccident(new Text("KILLED"));
-                mapKey.setTypeParticipant(new Text("MOTORIST"));
+                mapKey.setCharackerOfAccident("KILLED");
+                mapKey.setTypeParticipant("CYCLIST");
                 context.write(new Text(mapKey.toString()), new IntWritable(killedMotorist));
             }
+            if (line[7].length() > 0) {
+                mapKey.setStreet(line[7]);
 
+                mapKey.setCharackerOfAccident("INJURED");
+                mapKey.setTypeParticipant("PEDESTRIAN");
+                context.write(new Text(mapKey.toString()), new IntWritable(injuredPedestrians));
+                mapKey.setCharackerOfAccident("KILLED");
+                mapKey.setTypeParticipant("PEDESTRIAN");
+                context.write(new Text(mapKey.toString()), new IntWritable(killedPedestrians));
+                mapKey.setCharackerOfAccident("INJURED");
+                mapKey.setTypeParticipant("CYCLIST");
+                context.write(new Text(mapKey.toString()), new IntWritable(injuredCyclist));
+                mapKey.setCharackerOfAccident("KILLED");
+                mapKey.setTypeParticipant("CYCLIST");
+                context.write(new Text(mapKey.toString()), new IntWritable(killedCyclist));
+                mapKey.setCharackerOfAccident("INJURED");
+                mapKey.setTypeParticipant("MOTORIST");
+                context.write(new Text(mapKey.toString()), new IntWritable(injuredMotorist));
+                mapKey.setCharackerOfAccident("KILLED");
+                mapKey.setTypeParticipant("CYCLIST");
+                context.write(new Text(mapKey.toString()), new IntWritable(killedMotorist));
+            }
+            if (line[8].length() > 0) {
+                mapKey.setStreet(line[8]);
+
+                mapKey.setCharackerOfAccident("INJURED");
+                mapKey.setTypeParticipant("PEDESTRIAN");
+                context.write(new Text(mapKey.toString()), new IntWritable(injuredPedestrians));
+                mapKey.setCharackerOfAccident("KILLED");
+                mapKey.setTypeParticipant("PEDESTRIAN");
+                context.write(new Text(mapKey.toString()), new IntWritable(killedPedestrians));
+                mapKey.setCharackerOfAccident("INJURED");
+                mapKey.setTypeParticipant("CYCLIST");
+                context.write(new Text(mapKey.toString()), new IntWritable(injuredCyclist));
+                mapKey.setCharackerOfAccident("KILLED");
+                mapKey.setTypeParticipant("CYCLIST");
+                context.write(new Text(mapKey.toString()), new IntWritable(killedCyclist));
+                mapKey.setCharackerOfAccident("INJURED");
+                mapKey.setTypeParticipant("MOTORIST");
+                context.write(new Text(mapKey.toString()), new IntWritable(injuredMotorist));
+                mapKey.setCharackerOfAccident("KILLED");
+                mapKey.setTypeParticipant("CYCLIST");
+                context.write(new Text(mapKey.toString()), new IntWritable(killedMotorist));
+            }
+            //--------------------------------------------------- STREET
         }
     }
 
